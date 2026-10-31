@@ -1,10 +1,10 @@
-
 name: KARAXES OS X6 ISO Builder
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 180
 
     steps:
-      - name: Checkout
+      - name: Download source
         uses: actions/checkout@v4
 
       - name: Install build tools
@@ -35,8 +35,9 @@ jobs:
             mtools \
             dosfstools
 
-      - name: Configure KARAXES
+      - name: Prepare clean configuration
         run: |
+          sudo rm -rf config
           mkdir -p config/package-lists
 
           cat > config/package-lists/karaxes.list.chroot <<'EOF'
@@ -64,31 +65,38 @@ jobs:
           wireplumber
           fonts-dejavu
           locales
-          tasksel
           EOF
 
-      - name: Configure Live Build
+      - name: Configure Debian Live
         run: |
           sudo lb config \
+            --mode debian \
+            --ignore-system-defaults \
             --distribution trixie \
             --architectures amd64 \
+            --linux-flavours amd64 \
+            --linux-packages linux-image \
             --binary-images iso-hybrid \
             --archive-areas "main contrib non-free non-free-firmware" \
             --mirror-bootstrap http://deb.debian.org/debian \
             --mirror-chroot http://deb.debian.org/debian \
             --mirror-binary http://deb.debian.org/debian \
             --mirror-chroot-security http://security.debian.org/debian-security \
-            --debian-installer false
+            --debian-installer false \
+            --iso-application "KARAXES OS X6" \
+            --iso-volume "KARAXES_X6"
 
       - name: Build ISO
         run: |
           sudo lb build
 
-      - name: Check ISO
+      - name: Verify ISO
         run: |
-          ls -lh *.iso
-          file *.iso
-          sha256sum *.iso > SHA256SUMS.txt
+          ISO=$(find . -maxdepth 1 -type f -name "*.iso" | head -n 1)
+          test -n "$ISO"
+          ls -lh "$ISO"
+          file "$ISO"
+          sha256sum "$ISO" > SHA256SUMS.txt
 
       - name: Upload ISO
         uses: actions/upload-artifact@v4
