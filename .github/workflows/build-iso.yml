@@ -35,7 +35,15 @@ jobs:
             isolinux \
             mtools \
             dosfstools
+      - name: Fix Debian package index path
+        run: |
+          sudo find /usr/lib/live/build -type f -exec sed -i \
+            -e 's|/dists/${LB_PARENT_DISTRIBUTION}/Contents-|/dists/${LB_PARENT_DISTRIBUTION}/main/Contents-|g' \
+            -e 's|/dists/${LB_DISTRIBUTION}/Contents-|/dists/${LB_DISTRIBUTION}/main/Contents-|g' \
+            {} +
 
+          echo "Checking live-build fix:"
+          sudo grep -R -n 'main/Contents-' /usr/lib/live/build
       - name: Prepare KARAXES configuration
         run: |
           sudo rm -rf config
