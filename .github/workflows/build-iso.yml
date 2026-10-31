@@ -1,3 +1,4 @@
+
 name: KARAXES OS X6 ISO Builder
 
 on:
@@ -35,10 +36,11 @@ jobs:
             mtools \
             dosfstools
 
-      - name: Prepare clean configuration
+      - name: Prepare KARAXES configuration
         run: |
           sudo rm -rf config
           mkdir -p config/package-lists
+          mkdir -p config/archives
 
           cat > config/package-lists/karaxes.list.chroot <<'EOF'
           live-boot
@@ -67,6 +69,10 @@ jobs:
           locales
           EOF
 
+          cat > config/archives/debian-security.list.chroot <<'EOF'
+          deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+          EOF
+
       - name: Configure Debian Live
         run: |
           sudo lb config \
@@ -81,7 +87,7 @@ jobs:
             --mirror-bootstrap http://deb.debian.org/debian \
             --mirror-chroot http://deb.debian.org/debian \
             --mirror-binary http://deb.debian.org/debian \
-            --mirror-chroot-security http://security.debian.org/debian-security \
+            --security false \
             --debian-installer false \
             --iso-application "KARAXES OS X6" \
             --iso-volume "KARAXES_X6"
