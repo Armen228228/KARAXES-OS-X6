@@ -1,0 +1,93 @@
+
+name: KARAXES OS X6 ISO Builder
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            live-build \
+            debootstrap \
+            xorriso \
+            squashfs-tools \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            syslinux \
+            syslinux-common \
+            isolinux \
+            mtools \
+            dosfstools
+
+      - name: Configure KARAXES
+        run: |
+          mkdir -p config/package-lists
+
+          cat > config/package-lists/karaxes.list.chroot <<'EOF'
+          live-boot
+          live-config
+          live-config-systemd
+          linux-image-amd64
+          firmware-linux
+          firmware-linux-nonfree
+          firmware-misc-nonfree
+          network-manager
+          sudo
+          systemd
+          systemd-sysv
+          xfce4
+          xfce4-terminal
+          lightdm
+          firefox-esr
+          thunar
+          mousepad
+          gvfs
+          pavucontrol
+          alsa-utils
+          pipewire
+          wireplumber
+          fonts-dejavu
+          locales
+          tasksel
+          EOF
+
+      - name: Configure Live Build
+        run: |
+          sudo lb config \
+            --distribution trixie \
+            --architectures amd64 \
+            --binary-images iso-hybrid \
+            --archive-areas "main contrib non-free non-free-firmware" \
+            --debian-installer false
+
+      - name: Build ISO
+        run: |
+          sudo lb build
+
+      - name: Check ISO
+        run: |
+          ls -lh *.iso
+          file *.iso
+          sha256sum *.iso > SHA256SUMS.txt
+
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: KARAXES-OS-X6-ISO
+          path: |
+            *.iso
+            SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
