@@ -25,7 +25,7 @@ jobs:
           mkdir -p output
           sudo chmod 777 "$GITHUB_WORKSPACE"
 
-      - name: Build Debian 13 Live ISO
+      - name: Build KARAXES OS X6
         run: |
           docker run --rm \
             --privileged \
@@ -59,6 +59,8 @@ jobs:
               rm -rf config chroot binary .build
 
               mkdir -p config/package-lists
+              mkdir -p config/includes.chroot/usr/local/bin
+              mkdir -p config/includes.chroot/usr/share/applications
               mkdir -p output
 
               cat > config/package-lists/karaxes.list.chroot << "EOF"
@@ -87,7 +89,21 @@ jobs:
           fonts-dejavu
           locales
           xserver-xorg-video-nouveau
+          python3
+          python3-gi
+          gir1.2-gtk-4.0
           EOF
+
+              test -f karaxes-shell.py
+              test -f karaxes-shell.desktop
+
+              install -m 755 \
+                karaxes-shell.py \
+                config/includes.chroot/usr/local/bin/karaxes-shell.py
+
+              install -m 644 \
+                karaxes-shell.desktop \
+                config/includes.chroot/usr/share/applications/karaxes-shell.desktop
 
               lb config \
                 --mode debian \
