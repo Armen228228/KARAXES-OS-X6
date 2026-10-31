@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build:
+    name: Build KARAXES OS X6
     runs-on: ubuntu-24.04
     timeout-minutes: 180
 
@@ -19,38 +20,48 @@ jobs:
       - name: Download source
         uses: actions/checkout@v4
 
-      - name: Install build tools
+      - name: Prepare build directory
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            live-build \
-            debootstrap \
-            debian-archive-keyring \
-            xorriso \
-            squashfs-tools \
-            grub-pc-bin \
-            grub-efi-amd64-bin \
-            syslinux \
-            syslinux-common \
-            isolinux \
-            mtools \
-            dosfstools
-      - name: Fix Debian package index path
-        run: |
-          sudo find /usr/lib/live/build -type f -exec sed -i \
-            -e 's|/dists/${LB_PARENT_DISTRIBUTION}/Contents-|/dists/${LB_PARENT_DISTRIBUTION}/main/Contents-|g' \
-            -e 's|/dists/${LB_DISTRIBUTION}/Contents-|/dists/${LB_DISTRIBUTION}/main/Contents-|g' \
-            {} +
+          mkdir -p output
+          sudo chmod 777 "$GITHUB_WORKSPACE"
 
-          echo "Checking live-build fix:"
-          sudo grep -R -n 'main/Contents-' /usr/lib/live/build
-      - name: Prepare KARAXES configuration
+      - name: Build Debian 13 Live ISO
         run: |
-          sudo rm -rf config
-          mkdir -p config/package-lists
-          mkdir -p config/archives
+          docker run --rm \
+            --privileged \
+            -v "$GITHUB_WORKSPACE:/work" \
+            -w /work \
+            debian:trixie \
+            bash -euxo pipefail -c '
 
-          cat > config/package-lists/karaxes.list.chroot <<'EOF'
+              export DEBIAN_FRONTEND=noninteractive
+
+              apt-get update
+
+              apt-get install -y \
+                live-build \
+                debootstrap \
+                debian-archive-keyring \
+                ca-certificates \
+                xorriso \
+                squashfs-tools \
+                grub-pc-bin \
+                grub-efi-amd64-bin \
+                syslinux \
+                syslinux-common \
+                isolinux \
+                mtools \
+                dosfstools \
+                wget \
+                curl \
+                file
+
+              rm -rf config chroot binary .build
+
+              mkdir -p config/package-lists
+              mkdir -p output
+
+              cat > config/package-lists/karaxes.list.chroot << "EOF"
           live-boot
           live-config
           live-config-systemd
@@ -75,49 +86,49 @@ jobs:
           wireplumber
           fonts-dejavu
           locales
+          xserver-xorg-video-nouveau
           EOF
 
-          cat > config/archives/debian-security.list.chroot <<'EOF'
-          deb http://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
-          EOF
+              lb config \
+                --mode debian \
+                --ignore-system-defaults \
+                --distribution trixie \
+                --architectures amd64 \
+                --linux-flavours amd64 \
+                --linux-packages linux-image \
+                --binary-images iso-hybrid \
+                --archive-areas "main contrib non-free non-free-firmware" \
+                --mirror-bootstrap https://deb.debian.org/debian \
+                --mirror-chroot https://deb.debian.org/debian \
+                --mirror-binary https://deb.debian.org/debian \
+                --mirror-chroot-security https://security.debian.org/debian-security \
+                --security true \
+                --debian-installer false \
+                --iso-application "KARAXES OS X6" \
+                --iso-volume "KARAXES_X6"
 
-      - name: Configure Debian Live
-        run: |
-          sudo lb config \
-            --mode debian \
-            --ignore-system-defaults \
-            --distribution trixie \
-            --architectures amd64 \
-            --linux-flavours amd64 \
-            --linux-packages linux-image \
-            --binary-images iso-hybrid \
-            --archive-areas "main contrib non-free non-free-firmware" \
-            --mirror-bootstrap http://deb.debian.org/debian \
-            --mirror-chroot http://deb.debian.org/debian \
-            --mirror-binary http://deb.debian.org/debian \
-            --security false \
-            --debian-installer false \
-            --iso-application "KARAXES OS X6" \
-            --iso-volume "KARAXES_X6"
+              lb build
 
-      - name: Build ISO
-        run: |
-          sudo lb build
+              ISO=$(find . -maxdepth 1 -type f -name "*.iso" | head -n 1)
 
-      - name: Verify ISO
-        run: |
-          ISO=$(find . -maxdepth 1 -type f -name "*.iso" | head -n 1)
-          test -n "$ISO"
-          ls -lh "$ISO"
-          file "$ISO"
-          sha256sum "$ISO" > SHA256SUMS.txt
+              test -n "$ISO"
 
-      - name: Upload ISO
+              cp "$ISO" output/KARAXES-OS-X6.iso
+
+              cd output
+
+              sha256sum KARAXES-OS-X6.iso > SHA256SUMS.txt
+
+              ls -lh
+              file KARAXES-OS-X6.iso
+            '
+
+      - name: Upload KARAXES ISO
         uses: actions/upload-artifact@v4
         with:
           name: KARAXES-OS-X6-ISO
           path: |
-            *.iso
-            SHA256SUMS.txt
+            output/KARAXES-OS-X6.iso
+            output/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 7
