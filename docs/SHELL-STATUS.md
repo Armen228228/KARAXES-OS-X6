@@ -1,0 +1,1 @@
+The GTK KARAXES shell at `config/includes.chroot/usr/share/karaxes/desktop.py` is an early UI prototype, not the complete desktop environment. Placeholder pages must not be presented as working system modules.

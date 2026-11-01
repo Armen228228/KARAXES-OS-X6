@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+gen( ) { :; }
+locale-gen
+update-locale LANG=en_US.UTF-8

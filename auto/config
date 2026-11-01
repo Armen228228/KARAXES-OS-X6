@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+lb config \
+  --mode debian \
+  --distribution trixie \
+  --architectures amd64 \
+  --binary-images iso-hybrid \
+  --archive-areas "main contrib non-free non-free-firmware" \
+  --bootappend-live "boot=live components username=karaxes locales=en_US.UTF-8 keyboard-layouts=us" \
+  --iso-application "KARAXES OS X6" \
+  --iso-volume "KARAXES_X6" \
+  --image-name "karaxes-os-x6-amd64"

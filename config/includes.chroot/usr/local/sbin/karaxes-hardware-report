@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+printf '%s\n' '=== KARAXES OS X6 HARDWARE REPORT ==='
+printf '\n-- Kernel --\n'; uname -a
+printf '\n-- PCI --\n'; lspci -nnk 2>/dev/null || true
+printf '\n-- USB --\n'; lsusb 2>/dev/null || true
+printf '\n-- Network devices --\n'; nmcli -f DEVICE,TYPE,STATE,CONNECTION device status 2>/dev/null || true
+printf '\n-- Audio devices --\n'; (wpctl status 2>/dev/null || pactl list short sinks 2>/dev/null || true)
+printf '\n-- Firmware errors --\n'; dmesg 2>/dev/null | grep -iE 'firmware|failed to load|Direct firmware load' | tail -n 80 || true
+printf '\n-- Sound cards --\n'; cat /proc/asound/cards 2>/dev/null || echo 'No ALSA cards detected'
+printf '\n-- Storage --\n'; lsblk -o NAME,SIZE,MODEL,TYPE,FSTYPE,MOUNTPOINTS 2>/dev/null || true

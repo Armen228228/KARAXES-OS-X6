@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=KARAXES Desktop
+Comment=KARAXES OS X6 desktop shell
+Exec=/usr/local/bin/karaxes-desktop
+Icon=preferences-desktop
+Terminal=false
+Type=Application
+Categories=System;

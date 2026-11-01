@@ -1,0 +1,71 @@
+# XFCE desktop services and applications
+xfce4
+xfce4-goodies
+xfce4-terminal
+xfce4-settings
+xfce4-power-manager
+thunar
+thunar-volman
+thunar-archive-plugin
+ristretto
+mousepad
+xfce4-notifyd
+xfce4-panel
+xfdesktop4
+xfwm4
+# KARAXES GTK4 shell
+python3
+python3-gi
+python3-gi-cairo
+gir1.2-gtk-4.0
+libgtk-4-1
+# Network, audio, bluetooth
+network-manager
+network-manager-gnome
+wpasupplicant
+iw
+rfkill
+bluez
+blueman
+pipewire
+pipewire-audio
+pipewire-pulse
+wireplumber
+pavucontrol
+alsa-utils
+alsa-ucm-conf
+# Firmware
+firmware-linux
+firmware-linux-free
+firmware-linux-nonfree
+firmware-misc-nonfree
+firmware-realtek
+firmware-atheros
+firmware-brcm80211
+firmware-iwlwifi
+firmware-sof-signed
+firmware-mediatek
+firmware-ti-connectivity
+firmware-libertas
+firmware-marvell-prestera
+firmware-intel-misc
+firmware-intel-sound
+# Diagnostics
+pciutils
+usbutils
+lshw
+hwinfo
+inxi
+lm-sensors
+smartmontools
+mesa-utils
+htop
+# Apps and fonts
+firefox-esr
+fonts-dejavu
+fonts-noto-core
+fonts-noto-extra
+fonts-noto-cjk
+fonts-noto-color-emoji
+locales
+locales-all
